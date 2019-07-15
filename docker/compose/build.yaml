@@ -1,0 +1,17 @@
+version: '3.6'
+
+services:
+
+  state-machine-analyze-builder:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    image: state-machine-analyze-builder
+    container_name: state-machine-analyze-builder
+    volumes:
+      - ../../:/project/state-machine/
+    command: "bash -c \"\
+            cd src/app \
+            && go build -o ../../bin/state-machine-analyzer \
+            && cd - \
+        \""
