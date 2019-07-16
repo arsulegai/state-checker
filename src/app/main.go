@@ -94,7 +94,7 @@ func main() {
 	logFileReader = bufio.NewScanner(logFile)
 
 	var stateDescription lib.StateDescription
-	var stateMachine map[string][]string
+	var stateMachine lib.StateMachine
 
 	wg.Add(1)
 	go func() {
@@ -154,7 +154,7 @@ func main() {
 		log.Printf("%s transitioned from %s to %s", trace, previousState, state)
 
 		if previousState != lib.EMPTY_STRING {
-			err = lib.MakeTransition(previousState, state, stateMachine)
+			err = (&stateMachine).MakeTransition(previousState, state)
 			if err != nil {
 				// Raise exception, here's where to look for
 				log.Printf("%v\n", err)
