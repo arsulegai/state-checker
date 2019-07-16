@@ -12,4 +12,7 @@ const (
 	STATE_DELIMITER string = "|"
 	LIST_DELIMITER  string = ","
 	TRACE_DELIMITER string = "]"
+	START_TAG       string = "<Value>"
+	END_TAG         string = "</Value>"
+	TAG_STRING      string = START_TAG + "." + END_TAG
 )

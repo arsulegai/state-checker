@@ -9,14 +9,14 @@ import (
 )
 
 type StateDescription struct {
-	Description map[string]State
-	Values      []string
+	Description map[string]StateDefinition
+	Values      map[string]string
 }
 
 func newStateDescription() StateDescription {
 	return StateDescription{
-		make(map[string]State),
-		[]string{},
+		make(map[string]StateDefinition),
+		make(map[string]string),
 	}
 }
 
@@ -46,23 +46,69 @@ func BuildStateDescription(
 		}
 		key := strings.TrimSpace(parts[1])
 		value := strings.TrimSpace(parts[0])
-		stateDescription.Description[key] = State(value)
+		result, err := regexp.MatchString(TAG_STRING, value)
+		if err != nil {
+			return stateDescription, err
+		}
+		if result {
+			// Intelligent value place holder will be at position 0 which is
+			// value
+			extracted := strings.TrimLeft(
+				strings.TrimRight(value, END_TAG), START_TAG)
+			stateDescription.Values[extracted] = key
+		} else {
+			stateDescription.Description[key] = NewStateDefinition(value)
+		}
 	}
+
 	return stateDescription, nil
 }
 
 func (stateDescription StateDescription) IdentifyState(
 	line string,
-) (State, bool, error) {
+) (StateDefinition, bool, error) {
 	// For each of the state description, check if the given line matches it
 	for description := range stateDescription.Description {
-		matched, err := regexp.MatchString(description, line)
+		var lineForReading string
+		result, err := regexp.MatchString(TAG_STRING, description)
+		if err != nil {
+			return NewEmptyStateDefinition(), false, err
+		}
+		if result {
+			extracted := strings.TrimLeft(strings.TrimRight(
+				description, END_TAG), START_TAG)
+			value, ok := stateDescription.Values[extracted]
+			if !ok {
+				return NewEmptyStateDefinition(),
+					false,
+					errors.New(
+						"Unexpected error while trying to fetch the known value")
+			}
+			lineForReading = strings.Replace(description, TAG_STRING, value, 1)
+		} else {
+			lineForReading = description
+		}
+		matched, err := regexp.MatchString(lineForReading, line)
 		if matched {
-			return stateDescription.Description[description], true, nil
+			toReturnState := stateDescription.Description[description]
+			if result {
+				leftPart := strings.Trim(
+					strings.TrimRight(description, START_TAG), START_TAG)
+				rightPart := strings.Trim(
+					strings.TrimLeft(description, END_TAG), END_TAG)
+				matchedStateValue :=
+					strings.TrimSpace(
+						strings.TrimLeft(
+							strings.TrimRight(line, rightPart), leftPart))
+				toReturnState.Value = matchedStateValue
+			} else {
+				toReturnState.Value = EMPTY_STRING
+			}
+			return toReturnState, true, nil
 		}
 		if err != nil {
-			return State(EMPTY_STRING), false, err
+			return NewEmptyStateDefinition(), false, err
 		}
 	}
-	return State(EMPTY_STRING), false, nil
+	return NewEmptyStateDefinition(), false, nil
 }

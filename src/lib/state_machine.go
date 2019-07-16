@@ -8,12 +8,12 @@ import (
 )
 
 type StateMachine struct {
-	Machine map[State][]State
+	Machine map[StateDefinition][]StateDefinition
 }
 
 func newStateMachine() StateMachine {
 	return StateMachine{
-		make(map[State][]State),
+		make(map[StateDefinition][]StateDefinition),
 	}
 }
 
@@ -39,11 +39,11 @@ func BuildStateMachine(fileReader *bufio.Scanner) (StateMachine, error) {
 					numberOfParts),
 			)
 		}
-		initialState := State(strings.TrimSpace(parts[0]))
+		initialState := NewStateDefinition(strings.TrimSpace(parts[0]))
 		possibleStates := strings.Split(parts[1], LIST_DELIMITER)
-		finalStates := []State{}
+		finalStates := []StateDefinition{}
 		for _, possibleState := range possibleStates {
-			finalStates = append(finalStates, State(possibleState))
+			finalStates = append(finalStates, NewStateDefinition(possibleState))
 		}
 		stateMachine.Machine[initialState] = finalStates
 	}
@@ -51,8 +51,8 @@ func BuildStateMachine(fileReader *bufio.Scanner) (StateMachine, error) {
 }
 
 func (stateMachine *StateMachine) MakeTransition(
-	curState State,
-	nextState State,
+	curState StateDefinition,
+	nextState StateDefinition,
 ) error {
 	possibleStates, ok := stateMachine.Machine[curState]
 	if !ok {
@@ -61,7 +61,7 @@ func (stateMachine *StateMachine) MakeTransition(
 			fmt.Sprintf("Undefined error, no path found for %s", curState))
 	}
 	for _, state := range possibleStates {
-		if nextState == state {
+		if nextState.State == state.State {
 			// Found possible transition
 			return nil
 		}

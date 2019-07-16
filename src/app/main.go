@@ -121,11 +121,11 @@ func main() {
 		return
 	}
 
-	var previousState lib.State
-	var state lib.State
+	var previousState lib.StateDefinition
+	var state lib.StateDefinition
 	var isAState bool
 
-	previousState = lib.State(lib.EMPTY_STRING)
+	previousState = lib.NewEmptyStateDefinition()
 
 	log.Println("Now parsing the application log files")
 
@@ -153,7 +153,7 @@ func main() {
 
 		log.Printf("%v transitioned from %v to %v", trace, previousState, state)
 
-		if previousState != lib.State(lib.EMPTY_STRING) {
+		if previousState.State != lib.EMPTY_STRING {
 			err = (&stateMachine).MakeTransition(previousState, state)
 			if err != nil {
 				// Raise exception, here's where to look for
