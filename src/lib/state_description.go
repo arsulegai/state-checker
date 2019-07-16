@@ -8,24 +8,35 @@ import (
 	"strings"
 )
 
+type StateDescription struct {
+	Description map[string]string
+	Values      []string
+}
+
+func newStateDescription() StateDescription {
+	return StateDescription{
+		make(map[string]string),
+		[]string{},
+	}
+}
+
 func BuildStateDescription(
 	fileReader *bufio.Scanner,
-) (map[string]string, error) {
-	var stateDescription map[string]string
-	stateDescription = make(map[string]string)
+) (StateDescription, error) {
+	stateDescription := newStateDescription()
 	const numberOfParts int = 2
 
 	for {
 		line, isEnded, err := ReadNextLine(fileReader)
 		if err != nil {
-			return nil, err
+			return stateDescription, err
 		}
 		if isEnded {
 			break
 		}
 		parts := strings.SplitN(line, STATE_DELIMITER, numberOfParts)
 		if len(parts) != numberOfParts {
-			return nil, errors.New(
+			return stateDescription, errors.New(
 				fmt.Sprintf(
 					"Line %s has %d parts, but expected %d",
 					line,
@@ -35,20 +46,19 @@ func BuildStateDescription(
 		}
 		key := strings.TrimSpace(parts[1])
 		value := strings.TrimSpace(parts[0])
-		stateDescription[key] = value
+		stateDescription.Description[key] = value
 	}
 	return stateDescription, nil
 }
 
-func IdentifyState(
+func (stateDescription StateDescription) IdentifyState(
 	line string,
-	stateDescription map[string]string,
 ) (string, bool, error) {
 	// For each of the state description, check if the given line matches it
-	for description := range stateDescription {
+	for description := range stateDescription.Description {
 		matched, err := regexp.MatchString(description, line)
 		if matched {
-			return stateDescription[description], true, nil
+			return stateDescription.Description[description], true, nil
 		}
 		if err != nil {
 			return EMPTY_STRING, false, err

@@ -93,7 +93,7 @@ func main() {
 	defer logFile.Close()
 	logFileReader = bufio.NewScanner(logFile)
 
-	var stateDescription map[string]string
+	var stateDescription lib.StateDescription
 	var stateMachine map[string][]string
 
 	wg.Add(1)
@@ -140,7 +140,7 @@ func main() {
 			log.Println("Read the file completely")
 			break
 		}
-		state, isAState, err = lib.IdentifyState(trace, stateDescription)
+		state, isAState, err = stateDescription.IdentifyState(trace)
 		if err != nil {
 			errors = append(errors, err)
 			returnCode = 3
