@@ -9,13 +9,13 @@ import (
 )
 
 type StateDescription struct {
-	Description map[string]string
+	Description map[string]State
 	Values      []string
 }
 
 func newStateDescription() StateDescription {
 	return StateDescription{
-		make(map[string]string),
+		make(map[string]State),
 		[]string{},
 	}
 }
@@ -46,14 +46,14 @@ func BuildStateDescription(
 		}
 		key := strings.TrimSpace(parts[1])
 		value := strings.TrimSpace(parts[0])
-		stateDescription.Description[key] = value
+		stateDescription.Description[key] = State(value)
 	}
 	return stateDescription, nil
 }
 
 func (stateDescription StateDescription) IdentifyState(
 	line string,
-) (string, bool, error) {
+) (State, bool, error) {
 	// For each of the state description, check if the given line matches it
 	for description := range stateDescription.Description {
 		matched, err := regexp.MatchString(description, line)
@@ -61,8 +61,8 @@ func (stateDescription StateDescription) IdentifyState(
 			return stateDescription.Description[description], true, nil
 		}
 		if err != nil {
-			return EMPTY_STRING, false, err
+			return State(EMPTY_STRING), false, err
 		}
 	}
-	return EMPTY_STRING, false, nil
+	return State(EMPTY_STRING), false, nil
 }

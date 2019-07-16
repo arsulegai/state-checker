@@ -121,11 +121,11 @@ func main() {
 		return
 	}
 
-	var previousState string
-	var state string
+	var previousState lib.State
+	var state lib.State
 	var isAState bool
 
-	previousState = lib.EMPTY_STRING
+	previousState = lib.State(lib.EMPTY_STRING)
 
 	log.Println("Now parsing the application log files")
 
@@ -151,15 +151,15 @@ func main() {
 			continue
 		}
 
-		log.Printf("%s transitioned from %s to %s", trace, previousState, state)
+		log.Printf("%v transitioned from %v to %v", trace, previousState, state)
 
-		if previousState != lib.EMPTY_STRING {
+		if previousState != lib.State(lib.EMPTY_STRING) {
 			err = (&stateMachine).MakeTransition(previousState, state)
 			if err != nil {
 				// Raise exception, here's where to look for
 				log.Printf("%v\n", err)
 				log.Printf(
-					"%s\nPlease refer to this found line for debugging", trace)
+					"%v\nPlease refer to this found line for debugging", trace)
 				return
 			}
 		}

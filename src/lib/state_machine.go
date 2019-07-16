@@ -8,12 +8,12 @@ import (
 )
 
 type StateMachine struct {
-	Machine map[string][]string
+	Machine map[State][]State
 }
 
 func newStateMachine() StateMachine {
 	return StateMachine{
-		make(map[string][]string),
+		make(map[State][]State),
 	}
 }
 
@@ -39,11 +39,11 @@ func BuildStateMachine(fileReader *bufio.Scanner) (StateMachine, error) {
 					numberOfParts),
 			)
 		}
-		initialState := strings.TrimSpace(parts[0])
+		initialState := State(strings.TrimSpace(parts[0]))
 		possibleStates := strings.Split(parts[1], LIST_DELIMITER)
-		finalStates := []string{}
+		finalStates := []State{}
 		for _, possibleState := range possibleStates {
-			finalStates = append(finalStates, possibleState)
+			finalStates = append(finalStates, State(possibleState))
 		}
 		stateMachine.Machine[initialState] = finalStates
 	}
@@ -51,8 +51,8 @@ func BuildStateMachine(fileReader *bufio.Scanner) (StateMachine, error) {
 }
 
 func (stateMachine *StateMachine) MakeTransition(
-	curState string,
-	nextState string,
+	curState State,
+	nextState State,
 ) error {
 	possibleStates, ok := stateMachine.Machine[curState]
 	if !ok {
