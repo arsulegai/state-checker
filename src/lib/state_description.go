@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -32,7 +33,9 @@ func BuildStateDescription(
 					numberOfParts),
 			)
 		}
-		stateDescription[parts[1]] = parts[0]
+		key := strings.TrimSpace(parts[1])
+		value := strings.TrimSpace(parts[0])
+		stateDescription[key] = value
 	}
 	return stateDescription, nil
 }
@@ -41,12 +44,15 @@ func IdentifyState(
 	line string,
 	stateDescription map[string]string,
 ) (string, bool, error) {
-	// State Description is straightaway a key in this case
-	parts := strings.Split(line, TRACE_DELIMITER)
-	trace := parts[len(parts) - 1]
-	state, ok := stateDescription[trace]
-	if !ok {
-		return EMPTY_STRING, false, nil
+	// For each of the state description, check if the given line matches it
+	for description := range stateDescription {
+		matched, err := regexp.MatchString(description, line)
+		if matched {
+			return stateDescription[description], true, nil
+		}
+		if err != nil {
+			return EMPTY_STRING, false, err
+		}
 	}
-	return state, true, nil
+	return EMPTY_STRING, false, nil
 }
