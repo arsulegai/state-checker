@@ -121,11 +121,11 @@ func main() {
 		return
 	}
 
-	var previousState lib.StateDefinition
+	var previousState map[string]lib.StateDefinition
 	var state lib.StateDefinition
 	var isAState bool
 
-	previousState = lib.NewEmptyStateDefinition()
+	previousState = make(map[string]lib.StateDefinition)
 
 	log.Println("Now parsing the application log files")
 
@@ -153,8 +153,15 @@ func main() {
 
 		log.Printf("%v transitioned from %v to %v", trace, previousState, state)
 
-		if previousState.State != lib.EMPTY_STRING {
-			err = (&stateMachine).MakeTransition(previousState, state)
+		prev, ok := previousState[state.Value]
+		if !ok {
+			// For this value, a first state, there's no state transition yet
+			previousState[state.Value] = lib.NewEmptyStateDefinition()
+			continue
+		}
+
+		if prev.State != lib.EMPTY_STRING {
+			err = (&stateMachine).MakeTransition(prev, state)
 			if err != nil {
 				// Raise exception, here's where to look for
 				log.Printf("%v\n", err)
@@ -163,6 +170,6 @@ func main() {
 				return
 			}
 		}
-		previousState = state
+		previousState[state.Value] = state
 	}
 }
