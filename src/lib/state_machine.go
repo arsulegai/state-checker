@@ -30,8 +30,13 @@ func BuildStateMachine(fileReader *bufio.Scanner) (map[string][]string, error) {
 					numberOfParts),
 			)
 		}
-		possibleStates := strings.Split(parts[1], STATE_DELIMITER)
-		stateMachine[parts[0]] = possibleStates
+		initialState := strings.TrimSpace(parts[0])
+		possibleStates := strings.Split(parts[1], LIST_DELIMITER)
+		finalStates := []string{}
+		for _, possibleState := range possibleStates {
+			finalStates = append(finalStates, possibleState)
+		}
+		stateMachine[initialState] = finalStates
 	}
 	return stateMachine, nil
 }
