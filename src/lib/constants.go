@@ -11,4 +11,5 @@ const (
 	EMPTY_STRING    string = ""
 	STATE_DELIMITER string = "|"
 	LIST_DELIMITER  string = ","
+	TRACE_DELIMITER string = "]"
 )

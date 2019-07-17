@@ -15,18 +15,19 @@ func BuildStateDescription(
 	const numberOfParts int = 2
 
 	for {
-		line, isMoreToRead, err := ReadNextLine(fileReader)
+		line, isEnded, err := ReadNextLine(fileReader)
 		if err != nil {
 			return nil, err
 		}
-		if !isMoreToRead {
+		if isEnded {
 			break
 		}
-		parts := strings.SplitN(line, STATE_DELIMITER, numberOfParts-1)
+		parts := strings.SplitN(line, STATE_DELIMITER, numberOfParts)
 		if len(parts) != numberOfParts {
 			return nil, errors.New(
 				fmt.Sprintf(
-					"Line has %d parts, but expected %d",
+					"Line %s has %d parts, but expected %d",
+					line,
 					len(parts),
 					numberOfParts),
 			)
@@ -41,7 +42,9 @@ func IdentifyState(
 	stateDescription map[string]string,
 ) (string, bool, error) {
 	// State Description is straightaway a key in this case
-	state, ok := stateDescription[line]
+	parts := strings.Split(line, TRACE_DELIMITER)
+	trace := parts[len(parts) - 1]
+	state, ok := stateDescription[trace]
 	if !ok {
 		return EMPTY_STRING, false, nil
 	}

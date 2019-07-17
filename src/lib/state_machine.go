@@ -13,18 +13,19 @@ func BuildStateMachine(fileReader *bufio.Scanner) (map[string][]string, error) {
 	const numberOfParts int = 2
 
 	for {
-		line, isMoreToRead, err := ReadNextLine(fileReader)
+		line, isEnded, err := ReadNextLine(fileReader)
 		if err != nil {
 			return nil, err
 		}
-		if !isMoreToRead {
+		if isEnded {
 			break
 		}
-		parts := strings.SplitN(line, STATE_DELIMITER, numberOfParts-1)
+		parts := strings.SplitN(line, STATE_DELIMITER, numberOfParts)
 		if len(parts) != numberOfParts {
 			return nil, errors.New(
 				fmt.Sprintf(
-					"Line has %d parts, but expected %d",
+					"Line %s has %d parts, but expected %d",
+					line,
 					len(parts),
 					numberOfParts),
 			)

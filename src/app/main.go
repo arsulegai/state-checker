@@ -125,17 +125,21 @@ func main() {
 	var state string
 	var isAState bool
 
+	previousState = lib.EMPTY_STRING
+
+	log.Println("Now parsing the application log files")
+
 	for {
-		trace, isMoreRead, err := lib.ReadNextLine(logFileReader)
+		trace, isEnded, err := lib.ReadNextLine(logFileReader)
 		if err != nil {
 			errors = append(errors, err)
 			returnCode = 3
 			return
 		}
-		if !isMoreRead {
+		if isEnded {
+			log.Println("Read the file completely")
 			break
 		}
-		previousState = state
 		state, isAState, err = lib.IdentifyState(trace, stateDescription)
 		if err != nil {
 			errors = append(errors, err)
@@ -147,13 +151,18 @@ func main() {
 			continue
 		}
 
-		err = lib.MakeTransition(previousState, state, stateMachine)
-		if err != nil {
-			// Raise exception, here's where to look for
-			log.Printf("%v\n", err)
-			log.Printf(
-				"%s\nPlease refer to this found line for debugging", trace)
-			return
+		log.Printf("%s transitioned from %s to %s", trace, previousState, state)
+
+		if previousState != lib.EMPTY_STRING {
+			err = lib.MakeTransition(previousState, state, stateMachine)
+			if err != nil {
+				// Raise exception, here's where to look for
+				log.Printf("%v\n", err)
+				log.Printf(
+					"%s\nPlease refer to this found line for debugging", trace)
+				return
+			}
 		}
+		previousState = state
 	}
 }
