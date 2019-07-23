@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"log"
 )
 
 type StateDescription struct {
@@ -47,14 +48,16 @@ func BuildStateDescription(
 		key := strings.TrimSpace(parts[1])
 		value := strings.TrimSpace(parts[0])
 		result, err := regexp.MatchString(TAG_STRING, value)
+		// log.Printf("Log being checked is %v\n", value)
 		if err != nil {
 			return stateDescription, err
 		}
 		if result {
 			// Intelligent value place holder will be at position 0 which is
 			// value
-			extracted := strings.TrimLeft(
-				strings.TrimRight(value, END_TAG), START_TAG)
+			// log.Println("Found a tag")
+			extracted := strings.Split(
+				strings.Split(value, END_TAG)[0], START_TAG)[1]
 			stateDescription.Values[extracted] = key
 		} else {
 			stateDescription.Description[key] = NewStateDefinition(value)
@@ -75,8 +78,8 @@ func (stateDescription StateDescription) IdentifyState(
 			return NewEmptyStateDefinition(), false, err
 		}
 		if result {
-			extracted := strings.TrimLeft(strings.TrimRight(
-				description, END_TAG), START_TAG)
+			extracted := strings.Split(strings.Split(
+				description, END_TAG)[0], START_TAG)[1]
 			value, ok := stateDescription.Values[extracted]
 			if !ok {
 				return NewEmptyStateDefinition(),
@@ -84,30 +87,44 @@ func (stateDescription StateDescription) IdentifyState(
 					errors.New(
 						"Unexpected error while trying to fetch the known value")
 			}
-			lineForReading = strings.Replace(description, TAG_STRING, value, 1)
+			toReplace := START_TAG + extracted + END_TAG
+			lineForReading = strings.Replace(description, toReplace, value, 1)
 		} else {
 			lineForReading = description
 		}
 		matched, err := regexp.MatchString(lineForReading, line)
+		if err != nil {
+                        return NewEmptyStateDefinition(), false, err
+                }
+		// log.Printf("Line for reading is %v and is matched %v with the result %v\n", lineForReading, matched, result)
 		if matched {
-			toReturnState := stateDescription.Description[description]
+			toReturnState, ok := stateDescription.Description[description]
+			// log.Printf("Raw state is %v\n", toReturnState)
+			if !ok {
+				return NewEmptyStateDefinition(), false, errors.New(fmt.Sprintf("Expected value not found %v", description))
+			}
 			if result {
-				leftPart := strings.Trim(
-					strings.TrimRight(description, START_TAG), START_TAG)
-				rightPart := strings.Trim(
-					strings.TrimLeft(description, END_TAG), END_TAG)
+				leftPart := strings.TrimSpace(
+					strings.Split(description, START_TAG)[0])
+				if leftPart == EMPTY_STRING {
+					leftPart = WORD_DELIMITER
+				}
+				rightPart := strings.TrimSpace(
+					strings.Split(description, END_TAG)[1])
+				if rightPart == EMPTY_STRING {
+					rightPart = WORD_DELIMITER
+				}
+				log.Printf("Left %v Right %v\n", leftPart, rightPart)
 				matchedStateValue :=
 					strings.TrimSpace(
-						strings.TrimLeft(
-							strings.TrimRight(line, rightPart), leftPart))
+						strings.Split(
+							strings.Split(line, leftPart)[1], rightPart)[1])
+				log.Printf("Matched %v\n", matchedStateValue)
 				toReturnState.Value = matchedStateValue
 			} else {
 				toReturnState.Value = EMPTY_STRING
 			}
 			return toReturnState, true, nil
-		}
-		if err != nil {
-			return NewEmptyStateDefinition(), false, err
 		}
 	}
 	return NewEmptyStateDefinition(), false, nil

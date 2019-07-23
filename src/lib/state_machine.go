@@ -43,7 +43,7 @@ func BuildStateMachine(fileReader *bufio.Scanner) (StateMachine, error) {
 		possibleStates := strings.Split(parts[1], LIST_DELIMITER)
 		finalStates := []StateDefinition{}
 		for _, possibleState := range possibleStates {
-			finalStates = append(finalStates, NewStateDefinition(possibleState))
+			finalStates = append(finalStates, NewStateDefinition(strings.TrimSpace(possibleState)))
 		}
 		stateMachine.Machine[initialState] = finalStates
 	}
@@ -53,21 +53,27 @@ func BuildStateMachine(fileReader *bufio.Scanner) (StateMachine, error) {
 func (stateMachine *StateMachine) MakeTransition(
 	curState StateDefinition,
 	nextState StateDefinition,
-) error {
-	possibleStates, ok := stateMachine.Machine[curState]
+) (bool, error) {
+	tempState := curState
+	tempState.Value = EMPTY_STRING
+	possibleStates, ok := stateMachine.Machine[tempState]
 	if !ok {
 		// Nothing to do with this state
-		return errors.New(
+		return false, errors.New(
 			fmt.Sprintf("Undefined error, no path found for %s", curState))
 	}
 	for _, state := range possibleStates {
+		if state.State == END_STATE {
+			// Possible transition and it's end state for this Value
+			return true, nil
+		}
 		if nextState.State == state.State {
 			// Found possible transition
-			return nil
+			return false, nil
 		}
 	}
 	// Current State to Next State couldn't be transitioned
-	return errors.New(
+	return false, errors.New(
 		fmt.Sprintf(
 			"Cannot transition from %s to %s\nPossible are %v",
 			curState,

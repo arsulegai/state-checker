@@ -121,6 +121,9 @@ func main() {
 		return
 	}
 
+	log.Printf("State Description constructed is %v\n", stateDescription)
+	log.Printf("State Machine constructed is %v\n", stateMachine)
+
 	var previousState map[string]lib.StateDefinition
 	var state lib.StateDefinition
 	var isAState bool
@@ -148,28 +151,32 @@ func main() {
 		}
 		if !isAState {
 			// Just a log trace, go to next line
+			// log.Printf("%v is not a state\n", trace)
 			continue
 		}
-
-		log.Printf("%v transitioned from %v to %v", trace, previousState, state)
 
 		prev, ok := previousState[state.Value]
 		if !ok {
 			// For this value, a first state, there's no state transition yet
-			previousState[state.Value] = lib.NewEmptyStateDefinition()
+			previousState[state.Value] = state
+			log.Printf("%v is added\n", state)
 			continue
 		}
+		log.Printf("%v transitioned from %v to %v", trace, prev, state)
 
-		if prev.State != lib.EMPTY_STRING {
-			err = (&stateMachine).MakeTransition(prev, state)
-			if err != nil {
-				// Raise exception, here's where to look for
-				log.Printf("%v\n", err)
-				log.Printf(
-					"%v\nPlease refer to this found line for debugging", trace)
-				return
-			}
+		isCompleted, err := (&stateMachine).MakeTransition(prev, state)
+		if err != nil {
+			// Raise exception, here's where to look for
+			log.Printf("%v\n", err)
+			log.Printf(
+				"%v\nPlease refer to this found line for debugging", trace)
+			return
 		}
-		previousState[state.Value] = state
+		if isCompleted {
+			delete(previousState, state.Value)
+		} else {
+			previousState[state.Value] = state
+		}
 	}
+	log.Println("Successfully processed the log file")
 }
