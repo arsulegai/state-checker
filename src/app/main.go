@@ -93,8 +93,8 @@ func main() {
 	defer logFile.Close()
 	logFileReader = bufio.NewScanner(logFile)
 
-	var stateDescription map[string]string
-	var stateMachine map[string][]string
+	var stateDescription lib.StateDescription
+	var stateMachine lib.StateMachine
 
 	wg.Add(1)
 	go func() {
@@ -121,11 +121,14 @@ func main() {
 		return
 	}
 
-	var previousState string
-	var state string
+	log.Printf("State Description constructed is %v\n", stateDescription)
+	log.Printf("State Machine constructed is %v\n", stateMachine)
+
+	var previousState map[string]lib.StateDefinition
+	var state lib.StateDefinition
 	var isAState bool
 
-	previousState = lib.EMPTY_STRING
+	previousState = make(map[string]lib.StateDefinition)
 
 	log.Println("Now parsing the application log files")
 
@@ -140,7 +143,7 @@ func main() {
 			log.Println("Read the file completely")
 			break
 		}
-		state, isAState, err = lib.IdentifyState(trace, stateDescription)
+		state, isAState, err = stateDescription.IdentifyState(trace)
 		if err != nil {
 			errors = append(errors, err)
 			returnCode = 3
@@ -148,21 +151,32 @@ func main() {
 		}
 		if !isAState {
 			// Just a log trace, go to next line
+			// log.Printf("%v is not a state\n", trace)
 			continue
 		}
 
-		log.Printf("%s transitioned from %s to %s", trace, previousState, state)
-
-		if previousState != lib.EMPTY_STRING {
-			err = lib.MakeTransition(previousState, state, stateMachine)
-			if err != nil {
-				// Raise exception, here's where to look for
-				log.Printf("%v\n", err)
-				log.Printf(
-					"%s\nPlease refer to this found line for debugging", trace)
-				return
-			}
+		prev, ok := previousState[state.Value]
+		if !ok {
+			// For this value, a first state, there's no state transition yet
+			previousState[state.Value] = state
+			log.Printf("%v is added\n", state)
+			continue
 		}
-		previousState = state
+		log.Printf("%v transitioned from %v to %v", trace, prev, state)
+
+		isCompleted, err := (&stateMachine).MakeTransition(prev, state)
+		if err != nil {
+			// Raise exception, here's where to look for
+			log.Printf("%v\n", err)
+			log.Printf(
+				"%v\nPlease refer to this found line for debugging", trace)
+			return
+		}
+		if isCompleted {
+			delete(previousState, state.Value)
+		} else {
+			previousState[state.Value] = state
+		}
 	}
+	log.Println("Successfully processed the log file")
 }
