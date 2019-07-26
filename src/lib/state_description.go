@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
-	"log"
 )
 
 type StateDescription struct {
@@ -94,8 +94,8 @@ func (stateDescription StateDescription) IdentifyState(
 		}
 		matched, err := regexp.MatchString(lineForReading, line)
 		if err != nil {
-                        return NewEmptyStateDefinition(), false, err
-                }
+			return NewEmptyStateDefinition(), false, err
+		}
 		// log.Printf("Line for reading is %v and is matched %v with the result %v\n", lineForReading, matched, result)
 		if matched {
 			toReturnState, ok := stateDescription.Description[description]
