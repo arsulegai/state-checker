@@ -21,7 +21,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 )
@@ -65,14 +64,12 @@ func BuildStateDescription(
 		key := strings.TrimSpace(parts[1])
 		value := strings.TrimSpace(parts[0])
 		result, err := regexp.MatchString(TAG_STRING, value)
-		// log.Printf("Log being checked is %v\n", value)
 		if err != nil {
 			return stateDescription, err
 		}
 		if result {
 			// Intelligent value place holder will be at position 0 which is
 			// value
-			// log.Println("Found a tag")
 			extracted := strings.Split(
 				strings.Split(value, END_TAG)[0], START_TAG)[1]
 			stateDescription.Values[extracted] = key
@@ -113,12 +110,13 @@ func (stateDescription StateDescription) IdentifyState(
 		if err != nil {
 			return NewEmptyStateDefinition(), false, err
 		}
-		// log.Printf("Line for reading is %v and is matched %v with the result %v\n", lineForReading, matched, result)
 		if matched {
 			toReturnState, ok := stateDescription.Description[description]
-			// log.Printf("Raw state is %v\n", toReturnState)
 			if !ok {
-				return NewEmptyStateDefinition(), false, errors.New(fmt.Sprintf("Expected value not found %v", description))
+				return NewEmptyStateDefinition(),
+					false,
+					errors.New(
+						fmt.Sprintf("Expected value not found %v", description))
 			}
 			if result {
 				leftPart := strings.TrimSpace(
@@ -131,12 +129,10 @@ func (stateDescription StateDescription) IdentifyState(
 				if rightPart == EMPTY_STRING {
 					rightPart = WORD_DELIMITER
 				}
-				log.Printf("Left %v Right %v\n", leftPart, rightPart)
 				matchedStateValue :=
 					strings.TrimSpace(
 						strings.Split(
 							strings.Split(line, leftPart)[1], rightPart)[1])
-				log.Printf("Matched %v\n", matchedStateValue)
 				toReturnState.Value = matchedStateValue
 			} else {
 				toReturnState.Value = EMPTY_STRING

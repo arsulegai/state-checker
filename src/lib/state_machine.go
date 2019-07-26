@@ -60,7 +60,9 @@ func BuildStateMachine(fileReader *bufio.Scanner) (StateMachine, error) {
 		possibleStates := strings.Split(parts[1], LIST_DELIMITER)
 		finalStates := []StateDefinition{}
 		for _, possibleState := range possibleStates {
-			finalStates = append(finalStates, NewStateDefinition(strings.TrimSpace(possibleState)))
+			finalStates =
+				append(finalStates,
+					NewStateDefinition(strings.TrimSpace(possibleState)))
 		}
 		stateMachine.Machine[initialState] = finalStates
 	}
@@ -92,7 +94,7 @@ func (stateMachine *StateMachine) MakeTransition(
 	// Current State to Next State couldn't be transitioned
 	return false, errors.New(
 		fmt.Sprintf(
-			"Cannot transition from %s to %s\nPossible are %v",
+			"Cannot transition from %s to %s\nPossible are %v\n",
 			curState,
 			nextState,
 			possibleStates,

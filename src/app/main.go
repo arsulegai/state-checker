@@ -43,10 +43,10 @@ var stateDescriptor *string = flag.String(
 
 // Initialize package name and version
 func init() {
-	if APP_VERSION == "" {
+	if APP_VERSION == lib.EMPTY_STRING {
 		APP_VERSION = "0.1"
 	}
-	if APP_NAME == "" {
+	if APP_NAME == lib.EMPTY_STRING {
 		APP_NAME = "State Machine Checker"
 	}
 }
@@ -63,9 +63,11 @@ func main() {
 		os.Exit(returnCode)
 	}()
 
-	filesToRead := []string{"State Machine", "State Description", "Log File"}
-	log.Printf("%s, Version: %s\n", APP_NAME, APP_VERSION)
-	log.Printf("The application utilizes %v", filesToRead)
+	filesToRead := []string{"State Machine File (-state)",
+		"State Description File (-descriptor)",
+		"Log File (-log)"}
+	fmt.Printf("%s, Version: %s\n", APP_NAME, APP_VERSION)
+	fmt.Printf("The application utilizes %v\n", filesToRead)
 
 	flag.Parse() // Scan the arguments list
 
@@ -76,6 +78,7 @@ func main() {
 
 	var err error
 
+	// Read all the files, convert them to custom handlers
 	var descriptorFile *os.File
 	var descriptorFileReader *bufio.Scanner
 	var statesFile *os.File
@@ -110,6 +113,7 @@ func main() {
 	defer logFile.Close()
 	logFileReader = bufio.NewScanner(logFile)
 
+	// Read files simultaneously
 	var stateDescription lib.StateDescription
 	var stateMachine lib.StateMachine
 
@@ -138,16 +142,16 @@ func main() {
 		return
 	}
 
-	log.Printf("State Description constructed is %v\n", stateDescription)
-	log.Printf("State Machine constructed is %v\n", stateMachine)
-
+	// Read the log file, line by line and make transitions
 	var previousState map[string]lib.StateDefinition
 	var state lib.StateDefinition
 	var isAState bool
 
+	// The number of elements in this map is the maximum number of
+	// threads moving the state machine
 	previousState = make(map[string]lib.StateDefinition)
 
-	log.Println("Now parsing the application log files")
+	log.Println("Now parsing the log file")
 
 	for {
 		trace, isEnded, err := lib.ReadNextLine(logFileReader)
@@ -176,14 +180,13 @@ func main() {
 		if !ok {
 			// For this value, a first state, there's no state transition yet
 			previousState[state.Value] = state
-			log.Printf("%v is added\n", state)
 			continue
 		}
-		log.Printf("%v transitioned from %v to %v", trace, prev, state)
 
 		isCompleted, err := (&stateMachine).MakeTransition(prev, state)
 		if err != nil {
-			// Raise exception, here's where to look for
+			// Raise an exception, here's where to look for
+			log.Printf("%v transitioned state from %v to %v\n", trace, prev, state)
 			log.Printf("%v\n", err)
 			log.Printf(
 				"%v\nPlease refer to this found line for debugging", trace)
