@@ -5,7 +5,8 @@ red flag.
 
 The tool accepts three files as input `State Descriptor`, `State Machine` and
 a `Log File`. The document further assumes the names of these descriptor
-files to be `state-descriptor.file`, `state-machine.file` and `log.file`.
+files to be `state-descriptor.file`, name of the state machine file to be
+`state-machine.file` and the name of the log file to be `log.file`.
 
 # Sample Configuration
 
@@ -33,10 +34,10 @@ State2|State3,State1
 State3|State1
 ```
 
-In above example, there's possible transition from State2 to State3 or State1.
-The precedence of transition is that State2 will first try to move to State3
-before moving to State1. But it should always go from State1 to State2 or
-State3 to State1.
+In the above example, there's possible transition from State2 to State3 or
+State1. The precedence of transition is that State2 will first try to move to
+State3 before moving to State1. But it should always go from State1 to State2
+or State3 to State1.
 
 The `Log` file can be any text file, example
 
@@ -52,10 +53,10 @@ The `Log` file can be any text file, example
 [Log Trace Level, Time Information] Log Trace To Be Searched Which Corresponds to State 3
 ```
 
-If above example, there's no error in parsing the file.
+In the above example, there's no error in parsing the file.
 
 The tool works as follows
-1. Reads input file line by line
+1. Reads the input log file line by line
 2. If any of the log line matches a state as per the descriptor file, it's
 considered as a start of state-machine analysis.
 3. If a log trace matches a state from descriptor file and transitions to
@@ -87,7 +88,7 @@ Tested on
 2. Docker version 18.06-ce
 
 To generate a binary, run the docker-compose file from within the root
-directory
+directory of the repository (example, where you clone the git repository)
 
 ```
 docker-compose -f docker/compose/build.yaml up
@@ -129,5 +130,28 @@ already. The file looks like the following
 }
 ```
 
+# Developers
+
+## Contributions
+You're free to improvise the application, raise a pull request to the original
+repository after your implementation. Each commit must include `Signed-off-by:`
+in the commit message (run `git commit -s` to auto-sign). This sign off means
+you agree the commit satisfies the [Developer Certificate of
+Origin(DCO)](https://developercertificate.org/).
+
+## Beautiful Go
+For the benefit of new code gazers, run the `go fmt` before raising the pull
+request to the [https://github.com/arsulegai/state-checker](GitHub). There's
+a docker compose file for help as well. Run the command from root directory
+of the repository.
+
+```
+docker-compose -f docker/compose/fmt.yaml up
+```
+**Note:** Command will exit with the code 0 upon success.
+
+## License
+This software is licensed under the [Apache License Version 2.0](LICENSE)
+software license.
 
 &copy; Copyright 2019, Intel Corporation
