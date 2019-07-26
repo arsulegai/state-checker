@@ -13,5 +13,16 @@
 # limitations under the License.
 # ------------------------------------------------------------------------------
 
-.project
-bin/
+version: '3.6'
+
+services:
+
+  state-machine-analyze-builder:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    image: state-machine-analyze-builder
+    container_name: state-machine-analyze-builder
+    volumes:
+      - ../../:/project/state-machine/
+    command: go fmt ...
