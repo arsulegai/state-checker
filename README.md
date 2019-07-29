@@ -105,7 +105,7 @@ is identifying first state in the log.
 `state-machine.file` is as follows
 
 ```
-onsensusNewMessage|ConsensusBlockValid
+ConsensusNewMessage|ConsensusBlockValid
 ConsensusBlockValid|StartCommitting,IgnoreBlock
 StartCommitting|ConsensusBlockCommit
 IgnoreBlock|ConsensusNewMessage
