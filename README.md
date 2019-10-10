@@ -204,8 +204,9 @@ It will mount the local directory to the container and create a `bin` directory
 where you'll find the executable binary.
 
 **Note:**
-If the build is successful, docker-compose up should exit with
+- If the build is successful, docker-compose up should exit with
 status code 0.
+- For generating a binary for the Mac. Please use the file `docker/compose/mac-build.yaml`.
 
 ## Run
 To run the application use following command format, assumes that generated
